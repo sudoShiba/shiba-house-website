@@ -20,7 +20,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.append(renderer.domElement);
 camera.position.setX(-0.1);
 camera.position.setY(0.1);
-camera.position.setZ(0.25);
+camera.position.setZ(0.20);
 
 renderer.render(scene, camera);
 
