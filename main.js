@@ -1,93 +1,78 @@
-import './style.css'
+/*
+░░░░░░░▐█▀█▄░░░░░░░░░░▄█▀█▌
+░░░░░░░█▐▓░█▄░░░░░░░▄█▀▄▓▐█
+░░░░░░░█▐▓▓░████▄▄▄█▀▄▓▓▓▌█
+░░░░░▄█▌▀▄▓▓▄▄▄▄▀▀▀▄▓▓▓▓▓▌█
+░░░▄█▀▀▄▓█▓▓▓▓▓▓▓▓▓▓▓▓▀░▓▌█
+░░█▀▄▓▓▓███▓▓▓███▓▓▓▄░░▄▓▐█▌
+░█▌▓▓▓▀▀▓▓▓▓███▓▓▓▓▓▓▓▄▀▓▓▐█
+▐█▐██▐░▄▓▓▓▓▓▀▄░▀▓▓▓▓▓▓▓▓▓▌█▌
+█▌███▓▓▓▓▓▓▓▓▐░░▄▓▓███▓▓▓▄▀▐█
+█▐█▓▀░░▀▓▓▓▓▓▓▓▓▓██████▓▓▓▓▐█▌
+▓▄▌▀░▀░▐▀█▄▓▓██████████▓▓▓▌█ 
+*/
 
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import * as THREE from "three";
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// initiating scene
+// scene & camera
 const scene = new THREE.Scene();
 
-// initiating camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 0.5);
+scene.add(camera);
 
-// initiating renderer
-const renderer = new THREE.WebGLRenderer({
-	canvas: document.getElementById("bg"),
-});
+const ambiLight = new THREE.AmbientLight(0xffffff, 10);
+scene.add(ambiLight);
 
-renderer.setPixelRatio(window.devicePixelRatio);
+// renderer
+const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.append(renderer.domElement);
-camera.position.setX(-0.1);
-camera.position.setY(0.1);
-camera.position.setZ(0.20);
+document.body.appendChild(renderer.domElement);
 
-renderer.render(scene, camera);
+// controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.update();
 
-// initiating light
-const light = new THREE.AmbientLight(0x404040); // soft white light
-scene.add(light);
-
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.position.set(5, 5, 5);
-scene.add(pointLight);
-
-// initiating loaders
-
-// GLTF
+// house
 const loader = new GLTFLoader();
-
-let objectRef;
-
+const houseGroup = new THREE.Group();
 loader.load(
-	// resource URL
-	'/resources/scene.gltf',
-	// called when the resource is loaded
-	(gltf) => {
-		gltf.animations; // Array<THREE.AnimationClip>
-		gltf.scene; // THREE.Group
-		gltf.scenes; // Array<THREE.Group>
-		gltf.cameras; // Array<THREE.Camera>
-		gltf.asset; // Object
-		
-		objectRef  = gltf.scene; // making gltf.scene accessible for animation
-		objectRef.rotation.y += 45; // Rotating before animation
-
-		scene.add(objectRef); // Adding to the scene
-
-	},
-	// called while loading is progressing
-	(xhr) => {
-		console.log((xhr.loaded / xhr.total * 100) + '% loaded' );
-	},
-	// called when loading has errors
-	(error) => {
-		console.log( 'An error happened:' + error);
-	}
+    // resource URL
+    'resources/forest_house.glb',
+    // called when the resource is loaded
+    (gltf) => {
+        houseGroup.add(gltf.scene);
+        houseGroup.scale.set(5, 4, 5);
+        houseGroup.rotation.y = Math.PI / 2;
+        houseGroup.position.y -= 0.2;
+        houseGroup.translateX(0.15);
+        scene.add(houseGroup);
+    },
+    // called while loading is progressing
+    (xhr) => {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    // called when loading has errors
+    (error) => {
+        console.log("An error happened" + error);
+    }
 );
 
-// bg
-// const bg = new THREE.
-// scene.background = bg;
+// animation
+const animate = () => {
+    requestAnimationFrame(animate)
+    houseGroup.rotation.y += 0.001;
+    renderer.render(scene, camera);
+};
 
-// mouse controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.25;
-controls.enableZoom = true;
-
-// helpers
-const lightHelper = new THREE.PointLightHelper(pointLight)
-const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, gridHelper);
-
-// animate
-function animate() {
-	requestAnimationFrame(animate);
-
-	objectRef.rotation.y += ( Math.PI / 180 ) * 0.05;
-
-	renderer.render(scene, camera);
-}
-
+// Start the animation loop
 animate();
+
+
+window.addEventListener("resize", () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
