@@ -40,7 +40,7 @@ const loader = new GLTFLoader();
 const houseGroup = new THREE.Group();
 loader.load(
     // resource URL
-    'public/forest_house.glb',
+    'forest_house.glb',
     // called when the resource is loaded
     (gltf) => {
         houseGroup.add(gltf.scene);
